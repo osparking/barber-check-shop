@@ -33,7 +33,7 @@ public class KakaoService {
                                          Integer radius, Integer page, Integer size) {
         String url = UriComponentsBuilder
                 .fromUriString("https://dapi.kakao.com/v2/local/search/keyword.json")
-                .queryParam("query", query)
+                .queryParam("query", "hair")
                 .queryParamIfPresent("x", java.util.Optional.ofNullable(x))
                 .queryParamIfPresent("y", java.util.Optional.ofNullable(y))
                 .queryParamIfPresent("radius", java.util.Optional.ofNullable(radius))
@@ -41,11 +41,25 @@ public class KakaoService {
                 .queryParamIfPresent("size", java.util.Optional.ofNullable(size))
                 .toUriString();
 
-        return restClient.get()
+        KakaoResponse hairResponse = restClient.get()
                 .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "KakaoAK " + restApiKey)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .body(KakaoResponse.class);
+
+        var response = filterByQuery(hairResponse, query);
+
+
+        return response;
+    }
+
+    private KakaoResponse filterByQuery(KakaoResponse hairResponse, String query) {
+        var documents = hairResponse.getDocuments().stream().filter(
+                (document -> document.getPlaceName().contains(query))).toList();
+
+        hairResponse.setDocuments(documents);
+
+        return hairResponse;
     }
 }
